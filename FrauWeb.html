@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FrauWeb</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6d9eeb;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            padding: 20px;
+            color: var(--dark);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .form-section, .events-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .event-payment { background-color: rgba(46, 204, 113, 0.1); }
+        .event-bill { background-color: rgba(231, 76, 60, 0.1); }
+        .event-reminder { background-color: rgba(109, 158, 235, 0.1); }
+        
+        .countdown {
+            font-weight: bold;
+            font-size: 0.9em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .countdown-soon { background-color: #ffecb3; color: #ff6f00; }
+        .countdown-urgent { background-color: #ffcdd2; color: #c62828; }
+        
+        .delete-btn {
+            background-color: var(--danger);
+            width: auto;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FrauWeb</h1>
+        <p>Track payments and events with automatic countdown timers</p>
+    </header>
+    
+    <div class="container">
+        <div class="form-section">
+            <div class="form-container">
+                <h2>Add New Item</h2>
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="name">Name/Description</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="type">Type</label>
+                        <select id="type" required>
+                            <option value="payment">Payment</option>
+                            <option value="bill">Bill</option>
+                            <option value="reminder">Reminder</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time">Time (optional)</label>
+                        <input type="time" id="time">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recurring">Recurring?</label>
+                        <select id="recurring">
+                            <option value="none">No</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit">Add Event</button>
+                </form>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <div class="events-section">
+            <h2>Upcoming Events & Payments</h2>
+            <table id="eventsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Date/Time</th>
+                        <th>Countdown</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsBody">
+                    <!-- Events will be populated here -->
+                </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        // Data storage using localStorage
+        const STORAGE_KEY = 'eventsData';
+        
+        // Initialize events array
+        let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        
+        // DOM elements
+        const eventForm = document.getElementById('eventForm');
+        const eventsBody = document.getElementById('eventsBody');
+        
+        // Load events on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderEvents();
+            startCountdownTimer();
+        });
+        
+        // Form submission handler
+        eventForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const type = document.getElementById('type').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const recurring = document.getElementById('recurring').value;
+            
+            const event = {
+                id: Date.now(),
+                name,
+                type,
+                date,
+                time: time || null,
+                recurring,
+                timestamp: new Date(`${date}T${time || '00:00'}`).getTime()
+            };
+            
+            events.push(event);
+            saveEvents();
+            renderEvents();
+            eventForm.reset();
+        });
+        
+        // Save events to localStorage
+        function saveEvents() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+        }
+        
+        // Render events in table
+        function renderEvents() {
+            eventsBody.innerHTML = '';
+            
+            // Sort events by timestamp (soonest first)
+            const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+            
+            sortedEvents.forEach(event => {
+                const row = document.createElement('tr');
+                row.classList.add(`event-${event.type}`);
+                
+                // Format date/time display
+                const eventDate = new Date(event.timestamp);
+                const dateStr = eventDate.toLocaleDateString();
+                const timeStr = event.time ? eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                
+                // Create countdown element
+                const countdownEl = document.createElement('span');
+                countdownEl.id = `countdown-${event.id}`;
+                countdownEl.classList.add('countdown');
+                updateCountdown(event, countdownEl);
+                
+                row.innerHTML = `
+                    <td>${event.name}</td>
+                    <td>${event.type.charAt(0).toUpperCase() + event.type.slice(1)}</td>
+                    <td>${dateStr} ${timeStr}</td>
+                    <td></td>
+                    <td><button class="delete-btn" data-id="${event.id}">Delete</button></td>
+                `;
+                
+                // Insert countdown element
+                row.querySelector('td:nth-child(4)').appendChild(countdownEl);
+                eventsBody.appendChild(row);
+            });
+            
+            // Add delete event listeners
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    events = events.filter(event => event.id !== id);
+                    saveEvents();
+                    renderEvents();
+                });
+            });
+        }
+        
+        // Update countdown display
+        function updateCountdown(event, element) {
+            const now = new Date().getTime();
+            const distance = event.timestamp - now;
+            
+            if (distance < 0) {
+                handleExpiredEvent(event);
+                return;
+            }
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            
+            let countdownText = '';
+            if (days > 0) countdownText += `${days}d `;
+            if (hours > 0 || days > 0) countdownText += `${hours}h `;
+            countdownText += `${minutes}m`;
+            
+            element.textContent = countdownText;
+            
+            // Apply styling based on urgency
+            element.className = 'countdown';
+            if (days === 0 && hours < 24) {
+                element.classList.add('countdown-soon');
+            }
+            if (days === 0 && hours < 6) {
+                element.classList.add('countdown-urgent');
+            }
+        }
+        
+        // Handle expired events
+        function handleExpiredEvent(event) {
+            // For recurring events, calculate next occurrence
+            if (event.recurring && event.recurring !== 'none') {
+                const newDate = new Date(event.timestamp);
+                
+                switch(event.recurring) {
+                    case 'daily':
+                        newDate.setDate(newDate.getDate() + 1);
+                        break;
+                    case 'weekly':
+                        newDate.setDate(newDate.getDate() + 7);
+                        break;
+                    case 'monthly':
+                        newDate.setMonth(newDate.getMonth() + 1);
+                        break;
+                    case 'yearly':
+                        newDate.setFullYear(newDate.getFullYear() + 1);
+                        break;
+                }
+                
+                // Update event timestamp
+                event.timestamp = newDate.getTime();
+                saveEvents();
+            }
+        }
+        
+        // Start countdown timer (updates every minute)
+        function startCountdownTimer() {
+            setInterval(() => {
+                document.querySelectorAll('.countdown').forEach(el => {
+                    const id = el.id.split('-')[1];
+                    const event = events.find(e => e.id === parseInt(id));
+                    if (event) updateCountdown(event, el);
+                });
+            }, 60000); // Update every minute
+        }
+        
+        // Initialize event timestamps
+        events.forEach(event => {
+            if (!event.timestamp) {
+                const dateTime = event.time ? `${event.date}T${event.time}` : event.date;
+                event.timestamp = new Date(dateTime).getTime();
+            }
+        });
+        saveEvents();
+    </script>
+</body>
+</html>
